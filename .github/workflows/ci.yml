@@ -1,0 +1,47 @@
+name: CI — Lint, Test, Audit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: npm test -- --coverage
+        env:
+          GEMINI_API_KEY: test-key-for-ci
+
+      - name: Check coverage thresholds
+        run: npx jest --coverage --coverageThreshold='{"global":{"branches":80,"functions":80,"lines":80,"statements":80}}'
+        env:
+          GEMINI_API_KEY: test-key-for-ci
+
+      - name: Security audit
+        run: npm audit --audit-level=high
+
+      - name: Check for hardcoded secrets
+        run: |
+          echo "Checking for hardcoded API keys..."
+          ! grep -rn "AIza\|AKIA\|sk-\|ghp_\|gho_" --include="*.js" --include="*.json" --exclude-dir=node_modules . || (echo "FAIL: Possible hardcoded secret found!" && exit 1)
+          echo "No hardcoded secrets detected."

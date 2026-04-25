@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SprintLearn — An intelligent adaptive learning assistant that helps you master complex concepts in 5-minute sprints." />
+  <title>SprintLearn — Adaptive Learning Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- Skip Navigation — WCAG 2.1 AA §2.4.1 -->
+  <a href="#main-content" class="skip-link" id="skip-nav">Skip to main content</a>
+
+  <!-- ── Header ──────────────────────────────────────────────────── -->
+  <header role="banner" id="app-header">
+    <div class="header-inner">
+      <div class="header-brand">
+        <svg class="brand-icon" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+          <circle cx="14" cy="14" r="13" stroke="#34d399" stroke-width="2"/>
+          <path d="M9 14.5l3.5 3.5 7-7" stroke="#34d399" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h1 id="app-title">SprintLearn</h1>
+      </div>
+      <div class="header-actions">
+        <div class="header-timer" id="header-timer" aria-label="Sprint timer" role="timer" style="display:none;">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3.5l2.5 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span id="timer-display">5:00</span>
+        </div>
+        <button class="btn-icon" id="btn-settings" aria-label="Settings — configure your API key" title="Settings">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M16.18 12.32a1.26 1.26 0 00.25 1.39l.05.05a1.53 1.53 0 01-1.08 2.61 1.53 1.53 0 01-1.08-.45l-.05-.05a1.26 1.26 0 00-1.39-.25 1.26 1.26 0 00-.76 1.15v.14a1.53 1.53 0 01-3.06 0v-.07a1.26 1.26 0 00-.82-1.15 1.26 1.26 0 00-1.39.25l-.05.05a1.53 1.53 0 11-2.16-2.16l.05-.05a1.26 1.26 0 00.25-1.39 1.26 1.26 0 00-1.15-.76h-.14a1.53 1.53 0 010-3.06h.07a1.26 1.26 0 001.15-.82 1.26 1.26 0 00-.25-1.39l-.05-.05a1.53 1.53 0 112.16-2.16l.05.05a1.26 1.26 0 001.39.25h.06a1.26 1.26 0 00.76-1.15v-.14a1.53 1.53 0 013.06 0v.07a1.26 1.26 0 00.76 1.15 1.26 1.26 0 001.39-.25l.05-.05a1.53 1.53 0 112.16 2.16l-.05.05a1.26 1.26 0 00-.25 1.39v.06a1.26 1.26 0 001.15.76h.14a1.53 1.53 0 010 3.06h-.07a1.26 1.26 0 00-1.15.76z" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Settings Modal (BYOK) ───────────────────────────────────── -->
+  <div class="modal-overlay" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title" style="display:none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="settings-title">Settings</h2>
+        <button class="btn-icon modal-close" id="btn-modal-close" aria-label="Close settings">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M4.5 4.5l9 9M13.5 4.5l-9 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <label for="gemini-key-input" class="form-label">Gemini API Key (BYOK)</label>
+        <p class="form-hint" id="key-hint">Your key is stored only in your browser's session storage and is never saved to any server.</p>
+        <div class="input-group">
+          <input
+            type="password"
+            id="gemini-key-input"
+            class="form-input"
+            placeholder="AIzaSy..."
+            autocomplete="off"
+            aria-describedby="key-hint"
+          />
+          <button class="btn-secondary" id="btn-toggle-key" aria-label="Show or hide API key" type="button">Show</button>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-primary" id="btn-save-key" type="button">Save Key</button>
+          <button class="btn-ghost" id="btn-clear-key" type="button">Clear Key</button>
+        </div>
+        <p class="key-status" id="key-status" aria-live="polite"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── App Layout ──────────────────────────────────────────────── -->
+  <div class="app-layout" id="app-layout">
+
+    <!-- Sidebar: Knowledge Map -->
+    <aside class="sidebar" id="sidebar" role="complementary" aria-label="Knowledge map">
+      <div class="sidebar-section" id="sidebar-welcome" style="display:none;">
+        <h2 class="sidebar-title">Knowledge Map</h2>
+        <div class="level-badge" id="level-badge">
+          <span class="level-label" id="level-label">Beginner</span>
+          <span class="level-icon" id="level-icon" aria-hidden="true">🌱</span>
+        </div>
+        <div class="progress-section">
+          <div class="progress-label">
+            <span>Confidence</span>
+            <span id="confidence-value">0%</span>
+          </div>
+          <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Confidence score" id="confidence-bar">
+            <div class="progress-fill" id="confidence-fill" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="progress-section">
+          <div class="progress-label">
+            <span>Concepts</span>
+            <span id="concepts-progress">0 / 8</span>
+          </div>
+          <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Concept progress" id="concepts-bar">
+            <div class="progress-fill" id="concepts-fill" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="score-section" id="score-section" style="display:none;">
+          <div class="progress-label">
+            <span>Score</span>
+            <span id="score-display">0 / 0</span>
+          </div>
+        </div>
+        <div class="concept-list" id="concept-list"></div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main id="main-content" role="main">
+
+      <!-- Welcome Screen -->
+      <section class="welcome-screen" id="welcome-screen">
+        <div class="welcome-card">
+          <div class="welcome-icon" aria-hidden="true">
+            <svg width="64" height="64" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="30" stroke="url(#grad)" stroke-width="2.5"/><path d="M22 33l7 7 14-14" stroke="url(#grad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="grad" x1="0" y1="0" x2="64" y2="64"><stop stop-color="#34d399"/><stop offset="1" stop-color="#7c5cfc"/></linearGradient></defs></svg>
+          </div>
+          <h2 class="welcome-title">Master GTM Engineering</h2>
+          <p class="welcome-desc">Learn Google Tag Manager concepts in 5-minute adaptive sprints. The AI adjusts difficulty based on your performance.</p>
+          <button class="btn-primary btn-large" id="btn-start-session">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><polygon points="6,3 15,9 6,15" fill="currentColor"/></svg>
+            Start Sprint
+          </button>
+        </div>
+      </section>
+
+      <!-- Learning Area (hidden until session starts) -->
+      <section class="learning-area" id="learning-area" style="display:none;" aria-live="polite">
+
+        <!-- Concept Card -->
+        <article class="concept-card" id="concept-card">
+          <div class="concept-header">
+            <span class="concept-badge" id="concept-type-badge">LEARN</span>
+            <h2 class="concept-title" id="concept-title">Loading...</h2>
+          </div>
+          <div class="concept-difficulty" id="concept-difficulty">
+            <span class="diff-dot"></span>
+            <span id="difficulty-label">beginner</span>
+          </div>
+          <div class="concept-explanation" id="concept-explanation">
+            <p id="explanation-text"></p>
+          </div>
+          <div class="concept-source" id="concept-source" style="display:none;">
+            <span id="source-label"></span>
+          </div>
+        </article>
+
+        <!-- Assessment Area -->
+        <article class="assessment-card" id="assessment-card">
+          <h3 class="assessment-title" id="assessment-question">Question loading...</h3>
+          <fieldset class="options-group" id="options-group" aria-label="Multiple choice options">
+            <legend class="sr-only">Choose the correct answer</legend>
+          </fieldset>
+          <div class="assessment-actions" id="assessment-actions">
+            <button class="btn-primary" id="btn-submit-answer" disabled>Submit Answer</button>
+          </div>
+        </article>
+
+        <!-- Feedback Area (hidden until answer submitted) -->
+        <article class="feedback-card" id="feedback-card" style="display:none;" aria-live="assertive">
+          <div class="feedback-icon" id="feedback-icon" aria-hidden="true"></div>
+          <p class="feedback-text" id="feedback-text"></p>
+          <div class="feedback-meta" id="feedback-meta"></div>
+          <div class="feedback-actions" id="feedback-actions">
+            <button class="btn-primary" id="btn-next-concept">Next Concept</button>
+            <button class="btn-secondary" id="btn-more-detail">Need More Detail</button>
+          </div>
+        </article>
+      </section>
+
+      <!-- Loading Overlay -->
+      <div class="loading-overlay" id="loading-overlay" style="display:none;" role="status" aria-label="Loading">
+        <div class="spinner" aria-hidden="true"></div>
+        <p class="loading-text" id="loading-text">Generating personalized content...</p>
+      </div>
+
+      <noscript>
+        <p>JavaScript is required to use SprintLearn. Please enable it in your browser settings.</p>
+      </noscript>
+    </main>
+  </div>
+
+  <!-- Live Region for Accessibility Announcements -->
+  <div id="a11y-announcer" aria-live="assertive" aria-atomic="true" class="sr-only"></div>
+
+  <!-- Footer -->
+  <footer role="contentinfo">
+    <p>&copy; 2026 SprintLearn — PromptWars Pune</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/a11y.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
