@@ -84,8 +84,9 @@ app.use((err, _req, res, _next) => {
 
 // ── 10. Start server ───────────────────────────────────────────────
 if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`\n🚀 SprintLearn server running on http://localhost:${PORT}`);
+  const port = process.env.PORT || 8080;
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`\n🚀 SprintLearn server running on http://0.0.0.0:${port}`);
     console.log(`   Environment: ${process.env.NODE_ENV || "development"}\n`);
   });
 }
